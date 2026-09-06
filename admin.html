@@ -4,220 +4,208 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم - الهنا ماركت</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary-color: #2e7d32; }
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f4f6f8; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h2 { color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
-        .btn { background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .btn-danger { background: #d32f2f; }
-        .btn-warning { background: #f57c00; }
-        .btn-secondary { background: #666; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        th { background: var(--primary-color); color: white; }
-        .flex-gap { display: flex; gap: 10px; }
-        .section-box { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body { background: #f8fafc; color: #0f172a; padding: 20px; }
+        
+        .login-box, .admin-box {
+            background: white; max-width: 600px; margin: 20px auto; padding: 25px;
+            border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .hidden { display: none !important; }
+
+        h2, h3 { margin-bottom: 15px; font-weight: 700; color: #0f172a; }
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #64748b; }
+        input, select {
+            width: 100%; padding: 10px; border: 1px solid #cbd5e1;
+            border-radius: 8px; font-size: 14px; outline: none;
+        }
+        input:focus, select:focus { border-color: #10b981; }
+
+        button {
+            width: 100%; padding: 12px; background: #10b981; color: white;
+            border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background: #059669; }
+
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-warning { background: #f59e0b; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-edit { background: #3b82f6; }
+        .btn-edit:hover { background: #2563eb; }
+
+        .item-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f1f5f9; padding: 12px; border-radius: 8px; margin-bottom: 8px;
+        }
+        .actions { display: flex; gap: 4px; }
+        .actions button { width: auto; padding: 6px 10px; font-size: 11px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>لوحة تحكم إدارية - الهنا ماركت</h2>
-        
-        <!-- قسم الإعدادات السريعة -->
-        <div class="section-box">
-            <h3><i class="fa-solid fa-gear"></i> إعدادات الماركت</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 10px;">
-                <div>
-                    <label>الحد الأدنى للطلب (بالجنيه):</label>
-                    <div class="flex-gap">
-                        <input type="number" id="minOrderInput" placeholder="50">
-                        <button class="btn" onclick="saveMinOrder()">حفظ</button>
-                    </div>
-                </div>
-                <div>
-                    <label>تغيير كلمة السر:</label>
-                    <div class="flex-gap">
-                        <input type="password" id="newPassInput" placeholder="كلمة سر جديدة">
-                        <button class="btn btn-warning" onclick="changePassword()">تغيير</button>
-                    </div>
-                </div>
-            </div>
+    <!-- حماية اللوحة -->
+    <div id="login-screen" class="login-box">
+        <h2>تسجيل الدخول للوحة التحكم</h2>
+        <div class="input-group">
+            <label>كلمة السر</label>
+            <input type="password" id="pass-input" placeholder="أدخل كلمة السر">
         </div>
-
-        <!-- إضافة / تعديل منتج -->
-        <div class="section-box">
-            <h3 id="formTitle"><i class="fa-solid fa-plus"></i> إضافة منتج جديد</h3>
-            <form id="productForm" style="margin-top: 10px;">
-                <input type="hidden" id="editIndex">
-                <div class="form-group">
-                    <label>اسم المنتج:</label>
-                    <input type="text" id="pName" required>
-                </div>
-                <div class="form-group">
-                    <label>السعر (بالجنيه):</label>
-                    <input type="number" id="pPrice" required>
-                </div>
-                <div class="form-group">
-                    <label>القسم:</label>
-                    <select id="pCategory">
-                        <option value="مجمدات">مجمدات</option>
-                        <option value="شيبس">شيبس</option>
-                        <option value="ألبان">ألبان</option>
-                        <option value="معلبات">معلبات</option>
-                        <option value="حلويات">حلويات</option>
-                        <option value="مشروبات">مشروبات</option>
-                        <option value="منتجات أخرى">منتجات أخرى</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>رابط الصورة (Image URL):</label>
-                    <input type="text" id="pImg" placeholder="https://example.com/image.jpg" required>
-                </div>
-                <div class="flex-gap">
-                    <button type="button" class="btn" onclick="saveProduct()">حفظ المنتج</button>
-                    <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display:none;" onclick="resetForm()">إلغاء التعديل</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- قائمة المنتجات -->
-        <h3>قائمة المنتجات المتاحة</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>الصورة</th>
-                    <th>الاسم</th>
-                    <th>السعر</th>
-                    <th>القسم</th>
-                    <th>الحالة</th>
-                    <th>إجراءات</th>
-                </tr>
-            </thead>
-            <tbody id="adminProductsTable"></tbody>
-        </table>
-        
-        <br>
-        <a href="index.html" class="btn" style="text-decoration:none; display:inline-block;">الرجوع للمتجر الرئيسية</a>
+        <button id="login-btn">دخول</button>
     </div>
 
-    <script>
-        // التحقق من كلمة السر
-        let storedPass = localStorage.getItem('alhana_admin_pass') || 'alhanamarket';
-        let pass = prompt('أدخل كلمة سر التحكم:');
-        if (pass !== storedPass) {
-            alert('كلمة السر غير صحيحة!');
-            window.location.href = 'index.html';
-        }
+    <!-- لوحة التحكم -->
+    <div id="admin-panel" class="admin-box hidden">
+        <h2>إدارة منتجات "الهنا ماركت"</h2>
+        
+        <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;">
+            <h3 id="form-title">إضافة منتج جديد</h3>
+            <input type="hidden" id="edit-id">
+            
+            <div class="input-group">
+                <label>اسم المنتج</label>
+                <input type="text" id="p-name" placeholder="مثال: شيبسي عائلي">
+            </div>
+            <div class="input-group">
+                <label>السعر (بالجنيه)</label>
+                <input type="number" id="p-price" placeholder="مثال: 15">
+            </div>
+            <div class="input-group">
+                <label>القسم</label>
+                <input type="text" id="p-cat" placeholder="مثال: مأكولات خفيفة, مشروبات, البان...">
+            </div>
+            <div class="input-group">
+                <label>رابط الصورة (اختياري)</label>
+                <input type="text" id="p-img" placeholder="https://...">
+            </div>
+            <button id="save-btn">حفظ وإضافة المنتج أونلاين</button>
+            <button id="cancel-btn" class="btn-danger hidden" style="margin-top:5px;">إلغاء التعديل</button>
+        </div>
 
-        let products = JSON.parse(localStorage.getItem('alhana_products')) || [];
-        document.getElementById('minOrderInput').value = localStorage.getItem('alhana_min_order') || 50;
+        <div>
+            <h3>قائمة المنتجات الحالية</h3>
+            <div id="items-list">جاري التحميل...</div>
+        </div>
+    </div>
 
-        function renderAdminTable() {
-            const tbody = document.getElementById('adminProductsTable');
-            tbody.innerHTML = '';
-            products.forEach((p, index) => {
-                const inStock = p.inStock !== false;
-                tbody.innerHTML += `
-                    <tr>
-                        <td><img src="${p.img}" width="50" height="50" style="object-fit:cover;"></td>
-                        <td>${p.name}</td>
-                        <td>${p.price} جنيه</td>
-                        <td>${p.category}</td>
-                        <td>
-                            <button class="btn ${inStock ? 'btn' : 'btn-warning'}" style="padding:4px 8px; font-size:12px;" onclick="toggleStock(${index})">
-                                ${inStock ? 'متوفر' : 'غير متوفر'}
-                            </button>
-                        </td>
-                        <td>
-                            <button class="btn btn-warning" style="padding:4px 8px;" onclick="editProduct(${index})"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn btn-danger" style="padding:4px 8px;" onclick="deleteProduct(${index})"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        function saveProduct() {
-            const name = document.getElementById('pName').value;
-            const price = document.getElementById('pPrice').value;
-            const category = document.getElementById('pCategory').value;
-            const img = document.getElementById('pImg').value;
-            const editIdx = document.getElementById('editIndex').value;
+        const firebaseConfig = {
+            apiKey: "AIzaSyDk1wEvGuPjcVemWJTQL7sS6hFj4pBz1Ak",
+            authDomain: "al-hana-market.firebaseapp.com",
+            projectId: "al-hana-market",
+            storageBucket: "al-hana-market.firebasestorage.app",
+            messagingSenderId: "272160497482",
+            appId: "1:272160497482:web:9009257570838ab0f26bb3",
+            measurementId: "G-FCMBXK8YTP"
+        };
 
-            if(!name || !price || !img) {
-                alert('برجاء إكمال جميع البيانات');
-                return;
-            }
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-            if(editIdx !== "") {
-                products[editIdx] = { ...products[editIdx], name, price, category, img };
+        // تسجيل الدخول
+        document.getElementById('login-btn').addEventListener('click', () => {
+            if(document.getElementById('pass-input').value === "123456") {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
             } else {
-                products.push({ id: Date.now(), name, price, category, img, inStock: true });
+                alert('كلمة السر غير صحيحة!');
             }
+        });
 
-            localStorage.setItem('alhana_products', JSON.stringify(products));
-            resetForm();
-            renderAdminTable();
-        }
+        // حفظ / تعديل
+        document.getElementById('save-btn').addEventListener('click', async () => {
+            const name = document.getElementById('p-name').value.trim();
+            const price = document.getElementById('p-price').value.trim();
+            const category = document.getElementById('p-cat').value.trim() || 'عام';
+            const image = document.getElementById('p-img').value.trim();
+            const editId = document.getElementById('edit-id').value;
 
-        function editProduct(index) {
-            const p = products[index];
-            document.getElementById('pName').value = p.name;
-            document.getElementById('pPrice').value = p.price;
-            document.getElementById('pCategory').value = p.category;
-            document.getElementById('pImg').value = p.img;
-            document.getElementById('editIndex').value = index;
+            if(!name || !price) return alert('يرجى كتابة الاسم والسعر');
 
-            document.getElementById('formTitle').innerText = 'تعديل بيانات المنتج';
-            document.getElementById('cancelEditBtn').style.display = 'inline-block';
-        }
+            if(editId) {
+                // تعديل
+                await updateDoc(doc(db, "products", editId), {
+                    name, price: Number(price), category, image
+                });
+                alert('تم تعديل المنتج بنجاح!');
+                resetForm();
+            } else {
+                // إضافة
+                await addDoc(collection(db, "products"), {
+                    name, price: Number(price), category, image, outOfStock: false
+                });
+                alert('تمت الإضافة بنجاح!');
+                resetForm();
+            }
+        });
+
+        // بدء التعديل
+        window.startEdit = (id, name, price, category, image) => {
+            document.getElementById('form-title').innerText = "تعديل منتج قائم";
+            document.getElementById('edit-id').value = id;
+            document.getElementById('p-name').value = name;
+            document.getElementById('p-price').value = price;
+            document.getElementById('p-cat').value = category;
+            document.getElementById('p-img').value = image;
+
+            document.getElementById('save-btn').innerText = "تحديث البيانات";
+            document.getElementById('cancel-btn').classList.remove('hidden');
+        };
+
+        document.getElementById('cancel-btn').addEventListener('click', resetForm);
 
         function resetForm() {
-            document.getElementById('pName').value = '';
-            document.getElementById('pPrice').value = '';
-            document.getElementById('pImg').value = '';
-            document.getElementById('editIndex').value = '';
-            document.getElementById('formTitle').innerText = 'إضافة منتج جديد';
-            document.getElementById('cancelEditBtn').style.display = 'none';
+            document.getElementById('form-title').innerText = "إضافة منتج جديد";
+            document.getElementById('edit-id').value = '';
+            document.getElementById('p-name').value = '';
+            document.getElementById('p-price').value = '';
+            document.getElementById('p-cat').value = '';
+            document.getElementById('p-img').value = '';
+            document.getElementById('save-btn').innerText = "حفظ وإضافة المنتج أونلاين";
+            document.getElementById('cancel-btn').classList.add('hidden');
         }
 
-        function toggleStock(index) {
-            products[index].inStock = !(products[index].inStock !== false);
-            localStorage.setItem('alhana_products', JSON.stringify(products));
-            renderAdminTable();
-        }
+        window.deleteProduct = async (id) => {
+            if(confirm('تأكيد حذف المنتج؟')) await deleteDoc(doc(db, "products", id));
+        };
 
-        function deleteProduct(index) {
-            if(confirm('هل أنت تأكد من حذف هذا المنتج؟')) {
-                products.splice(index, 1);
-                localStorage.setItem('alhana_products', JSON.stringify(products));
-                renderAdminTable();
-            }
-        }
+        window.toggleStock = async (id, status) => {
+            await updateDoc(doc(db, "products", id), { outOfStock: !status });
+        };
 
-        function saveMinOrder() {
-            const val = document.getElementById('minOrderInput').value;
-            localStorage.setItem('alhana_min_order', val);
-            alert('تم حفظ الحد الأدنى بنجاح!');
-        }
+        // عرض المنتجات
+        onSnapshot(collection(db, "products"), (snapshot) => {
+            const container = document.getElementById('items-list');
+            container.innerHTML = '';
 
-        function changePassword() {
-            const newP = document.getElementById('newPassInput').value;
-            if(newP) {
-                localStorage.setItem('alhana_admin_pass', newP);
-                alert('تم تغيير كلمة السر بنجاح!');
-                document.getElementById('newPassInput').value = '';
-            }
-        }
+            snapshot.forEach((itemDoc) => {
+                const item = itemDoc.data();
+                const id = itemDoc.id;
 
-        renderAdminTable();
+                container.innerHTML += `
+                    <div class="item-row">
+                        <div>
+                            <strong>${item.name}</strong> - ${item.price} ج.م
+                            <div style="font-size:11px; color:#64748b;">
+                                القسم: ${item.category || 'عام'} | <span style="color:${item.outOfStock ? 'red' : 'green'};">${item.outOfStock ? 'غير متوفر' : 'متوفر'}</span>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button onclick="startEdit('${id}', '${item.name}', ${item.price}, '${item.category || ''}', '${item.image || ''}')" class="btn-edit">تعديل</button>
+                            <button onclick="toggleStock('${id}', ${item.outOfStock})" class="btn-warning">الحالة</button>
+                            <button onclick="deleteProduct('${id}')" class="btn-danger">حذف</button>
+                        </div>
+                    </div>
+                `;
+            });
+        });
     </script>
 </body>
 </html>
