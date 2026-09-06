@@ -6,102 +6,25 @@
     <title>لوحة التحكم - الهنا ماركت</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        body {
-            background: #f8fafc;
-            color: #0f172a;
-            padding: 20px;
-        }
-
-        .login-box, .admin-box {
-            background: white;
-            max-width: 650px;
-            margin: 20px auto;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        h2 {
-            font-size: 20px;
-            margin-bottom: 15px;
-            color: #0f172a;
-        }
-
-        .form-section {
-            background: #f1f5f9;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-        }
-
-        .input-group {
-            margin-bottom: 12px;
-        }
-
-        label {
-            display: block;
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 4px;
-            color: #64748b;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #10b981;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body { background: #f8fafc; color: #0f172a; padding: 20px; }
+        .login-box, .admin-box { background: white; max-width: 650px; margin: 20px auto; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .hidden { display: none !important; }
+        h2 { font-size: 20px; margin-bottom: 15px; color: #0f172a; font-weight: 800; }
+        .form-section { background: #f1f5f9; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #e2e8f0; }
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 5px; color: #475569; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; background: white; }
+        input:focus { border-color: #10b981; }
+        button { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; }
         .btn-danger { background: #ef4444; }
         .btn-warning { background: #f59e0b; }
         .btn-edit { background: #3b82f6; }
-
-        .item-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            border: 1px solid #e2e8f0;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .actions {
-            display: flex;
-            gap: 5px;
-        }
-
-        .actions button {
-            width: auto;
-            padding: 6px 12px;
-            font-size: 12px;
-        }
+        .btn-secondary { background: #64748b; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+        .actions { display: flex; gap: 5px; }
+        .actions button { width: auto; padding: 6px 12px; font-size: 12px; }
+        .img-preview { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; margin-top: 8px; display: none; }
     </style>
 </head>
 <body>
@@ -110,7 +33,7 @@
     <div id="login-screen" class="login-box">
         <h2>🔒 تسجيل الدخول للوحة التحكم</h2>
         <div class="input-group">
-            <label>كلمة السر الخاص بالمأدمن</label>
+            <label>كلمة السر</label>
             <input type="password" id="pass-input" placeholder="أدخل كلمة السر">
         </div>
         <button id="login-btn">دخول اللوحة</button>
@@ -118,8 +41,23 @@
 
     <!-- لوحة التحكم الرئيسية -->
     <div id="admin-panel" class="admin-box hidden">
-        <h2>🛠️ إدارة منتجات "الهنا ماركت"</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2>🛠️ إدارة منتجات "الهنا ماركت"</h2>
+            <button id="change-pass-btn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;">🔑 تغيير كلمة السر</button>
+        </div>
+
+        <!-- نموذج تغيير كلمة السر -->
+        <div id="pass-change-section" class="form-section hidden" style="background: #fff7ed; border-color: #ffedd5;">
+            <h3 style="font-size:15px; margin-bottom:10px; color:#c2410c;">تغيير كلمة السر الخاصة باللوحة</h3>
+            <div class="input-group">
+                <label>كلمة السر الجديدة</label>
+                <input type="password" id="new-pass" placeholder="أدخل كلمة السر الجديدة">
+            </div>
+            <button id="save-pass-btn" class="btn-warning">حفظ كلمة السر الجديدة</button>
+            <button id="cancel-pass-btn" class="btn-danger" style="margin-top:5px;">إلغاء</button>
+        </div>
         
+        <!-- نموذج إضافة/تعديل المنتجات -->
         <div class="form-section">
             <h3 id="form-title" style="font-size:16px; margin-bottom:12px;">إضافة منتج جديد</h3>
             <input type="hidden" id="edit-id">
@@ -139,9 +77,15 @@
                 <input type="text" id="p-cat" placeholder="مثال: بقالة، مشروبات، مجمدات">
             </div>
 
+            <!-- خيار رفع أو تصوير صورة جديدة -->
             <div class="input-group">
-                <label>رابط الصورة (URL)</label>
-                <input type="text" id="p-img" placeholder="ضع رابط الصورة هنا">
+                <label>صورة المنتج (ارفع ملف أو التقط صورة بالموبايل)</label>
+                <input type="file" id="p-file" accept="image/*" capture="environment">
+            </div>
+
+            <div class="input-group">
+                <label>أو ضع رابط صورة جاهز (URL)</label>
+                <input type="text" id="p-img" placeholder="https://...">
             </div>
 
             <button id="save-btn">حفظ وإضافة المنتج أونلاين</button>
@@ -149,14 +93,15 @@
         </div>
 
         <div>
-            <h3 style="font-size:16px; margin-bottom:12px;">قائمة المنتجات المتاحة</h3>
+            <h3 style="font-size:16px; margin-bottom:12px;">قائمة المنتجات الحالية</h3>
             <div id="items-list">جاري تحميل المنتجات...</div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDk1wEvGuPjcVemWJTQL7sS6hFj4pBz1Ak",
@@ -170,11 +115,25 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        let currentPassword = "123456"; // الباسورد الافتراضي
+
+        // جلب كلمة السر المحفوظة من الفايربيس إن وجدت
+        async function loadPassword() {
+            try {
+                const passDoc = await getDoc(doc(db, "settings", "admin"));
+                if (passDoc.exists() && passDoc.data().password) {
+                    currentPassword = passDoc.data().password;
+                }
+            } catch (e) { console.log(e); }
+        }
+        loadPassword();
 
         // تسجيل الدخول
         document.getElementById('login-btn').addEventListener('click', () => {
             const pass = document.getElementById('pass-input').value;
-            if(pass === "123456") {
+            if(pass === currentPassword) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('admin-panel').classList.remove('hidden');
             } else {
@@ -182,37 +141,79 @@
             }
         });
 
+        // فتح/إغلاق شاشة تغيير كلمة السر
+        document.getElementById('change-pass-btn').addEventListener('click', () => {
+            document.getElementById('pass-change-section').classList.toggle('hidden');
+        });
+        document.getElementById('cancel-pass-btn').addEventListener('click', () => {
+            document.getElementById('pass-change-section').classList.add('hidden');
+        });
+
+        // حفظ كلمة السر الجديدة
+        document.getElementById('save-pass-btn').addEventListener('click', async () => {
+            const newPass = document.getElementById('new-pass').value.trim();
+            if (!newPass) return alert('يرجى أدخال كلمة السر الجديدة!');
+
+            await setDoc(doc(db, "settings", "admin"), { password: newPass });
+            currentPassword = newPass;
+            alert('تم تغيير كلمة السر بنجاح!');
+            document.getElementById('new-pass').value = '';
+            document.getElementById('pass-change-section').classList.add('hidden');
+        });
+
+        // رفع الصورة وتخزينها في Firebase Storage
+        async function handleImageUpload() {
+            const fileInput = document.getElementById('p-file');
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const storageRef = ref(storage, 'products/' + Date.now() + '_' + file.name);
+                const snapshot = await uploadBytes(storageRef, file);
+                return await getDownloadURL(snapshot.ref);
+            }
+            return document.getElementById('p-img').value.trim();
+        }
+
         // حفظ وتعديل المنتج
         document.getElementById('save-btn').addEventListener('click', async () => {
             const name = document.getElementById('p-name').value.trim();
             const price = document.getElementById('p-price').value.trim();
             const category = document.getElementById('p-cat').value.trim() || 'عام';
-            const image = document.getElementById('p-img').value.trim();
             const editId = document.getElementById('edit-id').value;
 
             if(!name || !price) {
                 return alert('يرجى كتابة الاسم والسعر!');
             }
 
-            if(editId) {
-                await updateDoc(doc(db, "products", editId), {
-                    name: name,
-                    price: Number(price),
-                    category: category,
-                    image: image
-                });
-                alert('تم تعديل البيانات بنجاح!');
+            document.getElementById('save-btn').innerText = "جاري رفع البيانات والتصاوير...";
+            document.getElementById('save-btn').disabled = true;
+
+            try {
+                const imageUrl = await handleImageUpload();
+
+                if(editId) {
+                    await updateDoc(doc(db, "products", editId), {
+                        name: name,
+                        price: Number(price),
+                        category: category,
+                        image: imageUrl
+                    });
+                    alert('تم تعديل البيانات بنجاح!');
+                } else {
+                    await addDoc(collection(db, "products"), {
+                        name: name,
+                        price: Number(price),
+                        category: category,
+                        image: imageUrl,
+                        outOfStock: false
+                    });
+                    alert('تم إضافة المنتج للمتجر بنجاح!');
+                }
                 resetForm();
-            } else {
-                await addDoc(collection(db, "products"), {
-                    name: name,
-                    price: Number(price),
-                    category: category,
-                    image: image,
-                    outOfStock: false
-                });
-                alert('تم إضافة المنتج للمتجر بنجاح!');
-                resetForm();
+            } catch (error) {
+                alert('حدث خطأ أثناء الحفظ: ' + error.message);
+            } finally {
+                document.getElementById('save-btn').innerText = "حفظ وإضافة المنتج أونلاين";
+                document.getElementById('save-btn').disabled = false;
             }
         });
 
@@ -236,6 +237,7 @@
             document.getElementById('p-price').value = '';
             document.getElementById('p-cat').value = '';
             document.getElementById('p-img').value = '';
+            document.getElementById('p-file').value = '';
             document.getElementById('save-btn').innerText = "حفظ وإضافة المنتج أونلاين";
             document.getElementById('cancel-btn').classList.add('hidden');
         }
@@ -252,7 +254,7 @@
             });
         };
 
-        // المزامنة اللحظية مع قاعدة البيانات
+        // المزامنة اللحظية
         onSnapshot(collection(db, "products"), (snapshot) => {
             const container = document.getElementById('items-list');
             container.innerHTML = '';
