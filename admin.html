@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - الهنا ماركت</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary-color: #2e7d32; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f4f6f8; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: var(--primary-color); margin-bottom: 20px; border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; }
+        .btn { background: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .btn-danger { background: #d32f2f; }
+        .btn-warning { background: #f57c00; }
+        .btn-secondary { background: #666; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: var(--primary-color); color: white; }
+        .flex-gap { display: flex; gap: 10px; }
+        .section-box { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>لوحة تحكم إدارية - الهنا ماركت</h2>
+        
+        <!-- قسم الإعدادات السريعة -->
+        <div class="section-box">
+            <h3><i class="fa-solid fa-gear"></i> إعدادات الماركت</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 10px;">
+                <div>
+                    <label>الحد الأدنى للطلب (بالجنيه):</label>
+                    <div class="flex-gap">
+                        <input type="number" id="minOrderInput" placeholder="50">
+                        <button class="btn" onclick="saveMinOrder()">حفظ</button>
+                    </div>
+                </div>
+                <div>
+                    <label>تغيير كلمة السر:</label>
+                    <div class="flex-gap">
+                        <input type="password" id="newPassInput" placeholder="كلمة سر جديدة">
+                        <button class="btn btn-warning" onclick="changePassword()">تغيير</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- إضافة / تعديل منتج -->
+        <div class="section-box">
+            <h3 id="formTitle"><i class="fa-solid fa-plus"></i> إضافة منتج جديد</h3>
+            <form id="productForm" style="margin-top: 10px;">
+                <input type="hidden" id="editIndex">
+                <div class="form-group">
+                    <label>اسم المنتج:</label>
+                    <input type="text" id="pName" required>
+                </div>
+                <div class="form-group">
+                    <label>السعر (بالجنيه):</label>
+                    <input type="number" id="pPrice" required>
+                </div>
+                <div class="form-group">
+                    <label>القسم:</label>
+                    <select id="pCategory">
+                        <option value="مجمدات">مجمدات</option>
+                        <option value="شيبس">شيبس</option>
+                        <option value="ألبان">ألبان</option>
+                        <option value="معلبات">معلبات</option>
+                        <option value="حلويات">حلويات</option>
+                        <option value="مشروبات">مشروبات</option>
+                        <option value="منتجات أخرى">منتجات أخرى</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>رابط الصورة (Image URL):</label>
+                    <input type="text" id="pImg" placeholder="https://example.com/image.jpg" required>
+                </div>
+                <div class="flex-gap">
+                    <button type="button" class="btn" onclick="saveProduct()">حفظ المنتج</button>
+                    <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display:none;" onclick="resetForm()">إلغاء التعديل</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- قائمة المنتجات -->
+        <h3>قائمة المنتجات المتاحة</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>الصورة</th>
+                    <th>الاسم</th>
+                    <th>السعر</th>
+                    <th>القسم</th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="adminProductsTable"></tbody>
+        </table>
+        
+        <br>
+        <a href="index.html" class="btn" style="text-decoration:none; display:inline-block;">الرجوع للمتجر الرئيسية</a>
+    </div>
+
+    <script>
+        // التحقق من كلمة السر
+        let storedPass = localStorage.getItem('alhana_admin_pass') || 'alhanamarket';
+        let pass = prompt('أدخل كلمة سر التحكم:');
+        if (pass !== storedPass) {
+            alert('كلمة السر غير صحيحة!');
+            window.location.href = 'index.html';
+        }
+
+        let products = JSON.parse(localStorage.getItem('alhana_products')) || [];
+        document.getElementById('minOrderInput').value = localStorage.getItem('alhana_min_order') || 50;
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('adminProductsTable');
+            tbody.innerHTML = '';
+            products.forEach((p, index) => {
+                const inStock = p.inStock !== false;
+                tbody.innerHTML += `
+                    <tr>
+                        <td><img src="${p.img}" width="50" height="50" style="object-fit:cover;"></td>
+                        <td>${p.name}</td>
+                        <td>${p.price} جنيه</td>
+                        <td>${p.category}</td>
+                        <td>
+                            <button class="btn ${inStock ? 'btn' : 'btn-warning'}" style="padding:4px 8px; font-size:12px;" onclick="toggleStock(${index})">
+                                ${inStock ? 'متوفر' : 'غير متوفر'}
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn btn-warning" style="padding:4px 8px;" onclick="editProduct(${index})"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-danger" style="padding:4px 8px;" onclick="deleteProduct(${index})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function saveProduct() {
+            const name = document.getElementById('pName').value;
+            const price = document.getElementById('pPrice').value;
+            const category = document.getElementById('pCategory').value;
+            const img = document.getElementById('pImg').value;
+            const editIdx = document.getElementById('editIndex').value;
+
+            if(!name || !price || !img) {
+                alert('برجاء إكمال جميع البيانات');
+                return;
+            }
+
+            if(editIdx !== "") {
+                products[editIdx] = { ...products[editIdx], name, price, category, img };
+            } else {
+                products.push({ id: Date.now(), name, price, category, img, inStock: true });
+            }
+
+            localStorage.setItem('alhana_products', JSON.stringify(products));
+            resetForm();
+            renderAdminTable();
+        }
+
+        function editProduct(index) {
+            const p = products[index];
+            document.getElementById('pName').value = p.name;
+            document.getElementById('pPrice').value = p.price;
+            document.getElementById('pCategory').value = p.category;
+            document.getElementById('pImg').value = p.img;
+            document.getElementById('editIndex').value = index;
+
+            document.getElementById('formTitle').innerText = 'تعديل بيانات المنتج';
+            document.getElementById('cancelEditBtn').style.display = 'inline-block';
+        }
+
+        function resetForm() {
+            document.getElementById('pName').value = '';
+            document.getElementById('pPrice').value = '';
+            document.getElementById('pImg').value = '';
+            document.getElementById('editIndex').value = '';
+            document.getElementById('formTitle').innerText = 'إضافة منتج جديد';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+        }
+
+        function toggleStock(index) {
+            products[index].inStock = !(products[index].inStock !== false);
+            localStorage.setItem('alhana_products', JSON.stringify(products));
+            renderAdminTable();
+        }
+
+        function deleteProduct(index) {
+            if(confirm('هل أنت تأكد من حذف هذا المنتج؟')) {
+                products.splice(index, 1);
+                localStorage.setItem('alhana_products', JSON.stringify(products));
+                renderAdminTable();
+            }
+        }
+
+        function saveMinOrder() {
+            const val = document.getElementById('minOrderInput').value;
+            localStorage.setItem('alhana_min_order', val);
+            alert('تم حفظ الحد الأدنى بنجاح!');
+        }
+
+        function changePassword() {
+            const newP = document.getElementById('newPassInput').value;
+            if(newP) {
+                localStorage.setItem('alhana_admin_pass', newP);
+                alert('تم تغيير كلمة السر بنجاح!');
+                document.getElementById('newPassInput').value = '';
+            }
+        }
+
+        renderAdminTable();
+    </script>
+</body>
+</html>
