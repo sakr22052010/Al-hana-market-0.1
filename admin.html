@@ -8,47 +8,23 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         body { background: #f8fafc; color: #0f172a; padding: 20px; }
-        
-        .login-box, .admin-box {
-            background: white; max-width: 600px; margin: 20px auto; padding: 25px;
-            border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
+        .login-box, .admin-box { background: white; max-width: 600px; margin: 20px auto; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .hidden { display: none !important; }
-
-        h2, h3 { margin-bottom: 15px; font-weight: 700; color: #0f172a; }
+        h2, h3 { margin-bottom: 15px; font-weight: 700; }
         .input-group { margin-bottom: 12px; }
         label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #64748b; }
-        input, select {
-            width: 100%; padding: 10px; border: 1px solid #cbd5e1;
-            border-radius: 8px; font-size: 14px; outline: none;
-        }
-        input:focus, select:focus { border-color: #10b981; }
-
-        button {
-            width: 100%; padding: 12px; background: #10b981; color: white;
-            border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
-            transition: background 0.2s;
-        }
-        button:hover { background: #059669; }
-
+        input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; }
+        button { width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
         .btn-danger { background: #ef4444; }
-        .btn-danger:hover { background: #dc2626; }
         .btn-warning { background: #f59e0b; }
-        .btn-warning:hover { background: #d97706; }
         .btn-edit { background: #3b82f6; }
-        .btn-edit:hover { background: #2563eb; }
-
-        .item-row {
-            display: flex; justify-content: space-between; align-items: center;
-            background: #f1f5f9; padding: 12px; border-radius: 8px; margin-bottom: 8px;
-        }
+        .item-row { display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; padding: 12px; border-radius: 8px; margin-bottom: 8px; }
         .actions { display: flex; gap: 4px; }
         .actions button { width: auto; padding: 6px 10px; font-size: 11px; }
     </style>
 </head>
 <body>
 
-    <!-- حماية اللوحة -->
     <div id="login-screen" class="login-box">
         <h2>تسجيل الدخول للوحة التحكم</h2>
         <div class="input-group">
@@ -58,14 +34,11 @@
         <button id="login-btn">دخول</button>
     </div>
 
-    <!-- لوحة التحكم -->
     <div id="admin-panel" class="admin-box hidden">
         <h2>إدارة منتجات "الهنا ماركت"</h2>
-        
         <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;">
             <h3 id="form-title">إضافة منتج جديد</h3>
             <input type="hidden" id="edit-id">
-            
             <div class="input-group">
                 <label>اسم المنتج</label>
                 <input type="text" id="p-name" placeholder="مثال: شيبسي عائلي">
@@ -76,7 +49,7 @@
             </div>
             <div class="input-group">
                 <label>القسم</label>
-                <input type="text" id="p-cat" placeholder="مثال: مأكولات خفيفة, مشروبات, البان...">
+                <input type="text" id="p-cat" placeholder="مثال: مشروبات, مأكولات...">
             </div>
             <div class="input-group">
                 <label>رابط الصورة (اختياري)</label>
@@ -109,17 +82,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // تسجيل الدخول
         document.getElementById('login-btn').addEventListener('click', () => {
             if(document.getElementById('pass-input').value === "123456") {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('admin-panel').classList.remove('hidden');
-            } else {
-                alert('كلمة السر غير صحيحة!');
-            }
+            } else { alert('كلمة السر غير صحيحة!'); }
         });
 
-        // حفظ / تعديل
         document.getElementById('save-btn').addEventListener('click', async () => {
             const name = document.getElementById('p-name').value.trim();
             const price = document.getElementById('p-price').value.trim();
@@ -130,31 +99,23 @@
             if(!name || !price) return alert('يرجى كتابة الاسم والسعر');
 
             if(editId) {
-                // تعديل
-                await updateDoc(doc(db, "products", editId), {
-                    name, price: Number(price), category, image
-                });
-                alert('تم تعديل المنتج بنجاح!');
+                await updateDoc(doc(db, "products", editId), { name, price: Number(price), category, image });
+                alert('تم التعديل بنجاح!');
                 resetForm();
             } else {
-                // إضافة
-                await addDoc(collection(db, "products"), {
-                    name, price: Number(price), category, image, outOfStock: false
-                });
+                await addDoc(collection(db, "products"), { name, price: Number(price), category, image, outOfStock: false });
                 alert('تمت الإضافة بنجاح!');
                 resetForm();
             }
         });
 
-        // بدء التعديل
         window.startEdit = (id, name, price, category, image) => {
-            document.getElementById('form-title').innerText = "تعديل منتج قائم";
+            document.getElementById('form-title').innerText = "تعديل منتج";
             document.getElementById('edit-id').value = id;
             document.getElementById('p-name').value = name;
             document.getElementById('p-price').value = price;
             document.getElementById('p-cat').value = category;
             document.getElementById('p-img').value = image;
-
             document.getElementById('save-btn').innerText = "تحديث البيانات";
             document.getElementById('cancel-btn').classList.remove('hidden');
         };
@@ -172,30 +133,20 @@
             document.getElementById('cancel-btn').classList.add('hidden');
         }
 
-        window.deleteProduct = async (id) => {
-            if(confirm('تأكيد حذف المنتج؟')) await deleteDoc(doc(db, "products", id));
-        };
+        window.deleteProduct = async (id) => { if(confirm('تأكيد الحذف؟')) await deleteDoc(doc(db, "products", id)); };
+        window.toggleStock = async (id, status) => { await updateDoc(doc(db, "products", id), { outOfStock: !status }); };
 
-        window.toggleStock = async (id, status) => {
-            await updateDoc(doc(db, "products", id), { outOfStock: !status });
-        };
-
-        // عرض المنتجات
         onSnapshot(collection(db, "products"), (snapshot) => {
             const container = document.getElementById('items-list');
             container.innerHTML = '';
-
             snapshot.forEach((itemDoc) => {
                 const item = itemDoc.data();
                 const id = itemDoc.id;
-
                 container.innerHTML += `
                     <div class="item-row">
                         <div>
                             <strong>${item.name}</strong> - ${item.price} ج.م
-                            <div style="font-size:11px; color:#64748b;">
-                                القسم: ${item.category || 'عام'} | <span style="color:${item.outOfStock ? 'red' : 'green'};">${item.outOfStock ? 'غير متوفر' : 'متوفر'}</span>
-                            </div>
+                            <div style="font-size:11px; color:#64748b;">${item.category || 'عام'} | ${item.outOfStock ? 'غير متوفر' : 'متوفر'}</div>
                         </div>
                         <div class="actions">
                             <button onclick="startEdit('${id}', '${item.name}', ${item.price}, '${item.category || ''}', '${item.image || ''}')" class="btn-edit">تعديل</button>
