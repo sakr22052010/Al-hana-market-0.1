@@ -77,7 +77,7 @@
             </div>
 
             <div class="input-group">
-                <label>صورة المنتج (التقط صورة بالكاميرا أو ارفع صورة)</label>
+                <label>صورة المنتج (التصوير الفوري والرفع السريع)</label>
                 <input type="file" id="p-file" accept="image/*" capture="environment">
             </div>
 
@@ -99,7 +99,6 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, onSnapshot, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDk1wEvGuPjcVemWJTQL7sS6hFj4pBz1Ak",
@@ -113,7 +112,6 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
         let currentPassword = "123456";
 
@@ -155,8 +153,8 @@
             document.getElementById('pass-change-section').classList.add('hidden');
         });
 
-        // دالة ضغط الصورة وتقليل حجمها تلقائياً قبل الرفع
-        function compressImage(file) {
+        // تحويل الصورة فورياً لكود Base64 خفيف وحفظه مباشرة في الداتابيز
+        function processImage(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -165,37 +163,27 @@
                     img.src = event.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        const maxWidth = 800; // أقصى عرض كافي جداً للمتجر
+                        const maxWidth = 400; // حجم مصغر وممتاز للظهور في المتجر
                         const scaleSize = maxWidth / img.width;
                         
-                        if (scaleSize < 1) {
-                            canvas.width = maxWidth;
-                            canvas.height = img.height * scaleSize;
-                        } else {
-                            canvas.width = img.width;
-                            canvas.height = img.height;
-                        }
+                        canvas.width = maxWidth;
+                        canvas.height = img.height * scaleSize;
 
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-                        // ضغط جودة الصورة لـ 70% للرفع السريع جداً
-                        canvas.toBlob((blob) => {
-                            resolve(blob);
-                        }, 'image/jpeg', 0.7);
+                        // ضغط الصورة لأقصى درجة خفيفة جداً (0.5)
+                        const base64Url = canvas.toDataURL('image/jpeg', 0.5);
+                        resolve(base64Url);
                     };
                 };
             });
         }
 
-        async function handleImageUpload() {
+        async function getImageUrl() {
             const fileInput = document.getElementById('p-file');
             if (fileInput.files.length > 0) {
-                const rawFile = fileInput.files[0];
-                const compressedBlob = await compressImage(rawFile);
-                const storageRef = ref(storage, 'products/' + Date.now() + '.jpg');
-                const snapshot = await uploadBytes(storageRef, compressedBlob);
-                return await getDownloadURL(snapshot.ref);
+                return await processImage(fileInput.files[0]);
             }
             return document.getElementById('p-img').value.trim();
         }
@@ -210,14 +198,14 @@
                 return alert('يرجى كتابة الاسم والسعر!');
             }
 
-            document.getElementById('save-btn').innerText = "جاري رفع الصورة والبيانات بلمح البصر...";
+            document.getElementById('save-btn').innerText = "جاري الحفظ الفوري...";
             document.getElementById('save-btn').disabled = true;
 
             try {
-                const imageUrl = await handleImageUpload();
+                const imageUrl = await getImageUrl();
 
                 if(editId) {
-                    await updateDoc(doc(db, "products", editId), {
+                    await updateDoc(doc(doc(db, "products", editId)), {
                         name: name,
                         price: Number(price),
                         category: category,
@@ -232,7 +220,7 @@
                         image: imageUrl,
                         outOfStock: false
                     });
-                    alert('تم إضافة المنتج للمتجر بنجاح!');
+                    alert('تم إضافة المنتج للمتجر فوراً!');
                 }
                 resetForm();
             } catch (error) {
