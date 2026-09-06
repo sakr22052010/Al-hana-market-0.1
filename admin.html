@@ -24,7 +24,6 @@
         .item-row { display: flex; justify-content: space-between; align-items: center; background: white; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
         .actions { display: flex; gap: 5px; }
         .actions button { width: auto; padding: 6px 12px; font-size: 12px; }
-        .img-preview { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; margin-top: 8px; display: none; }
     </style>
 </head>
 <body>
@@ -46,7 +45,7 @@
             <button id="change-pass-btn" class="btn-secondary" style="width: auto; padding: 6px 12px; font-size: 12px;">🔑 تغيير كلمة السر</button>
         </div>
 
-        <!-- نموذج تغيير كلمة السر -->
+        <!-- تغيير كلمة السر -->
         <div id="pass-change-section" class="form-section hidden" style="background: #fff7ed; border-color: #ffedd5;">
             <h3 style="font-size:15px; margin-bottom:10px; color:#c2410c;">تغيير كلمة السر الخاصة باللوحة</h3>
             <div class="input-group">
@@ -57,7 +56,7 @@
             <button id="cancel-pass-btn" class="btn-danger" style="margin-top:5px;">إلغاء</button>
         </div>
         
-        <!-- نموذج إضافة/تعديل المنتجات -->
+        <!-- إضافة/تعديل المنتجات -->
         <div class="form-section">
             <h3 id="form-title" style="font-size:16px; margin-bottom:12px;">إضافة منتج جديد</h3>
             <input type="hidden" id="edit-id">
@@ -77,9 +76,8 @@
                 <input type="text" id="p-cat" placeholder="مثال: بقالة، مشروبات، مجمدات">
             </div>
 
-            <!-- خيار رفع أو تصوير صورة جديدة -->
             <div class="input-group">
-                <label>صورة المنتج (ارفع ملف أو التقط صورة بالموبايل)</label>
+                <label>صورة المنتج (التقط صورة بالكاميرا أو ارفع صورة)</label>
                 <input type="file" id="p-file" accept="image/*" capture="environment">
             </div>
 
@@ -117,9 +115,8 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
 
-        let currentPassword = "123456"; // الباسورد الافتراضي
+        let currentPassword = "123456";
 
-        // جلب كلمة السر المحفوظة من الفايربيس إن وجدت
         async function loadPassword() {
             try {
                 const passDoc = await getDoc(doc(db, "settings", "admin"));
@@ -130,7 +127,6 @@
         }
         loadPassword();
 
-        // تسجيل الدخول
         document.getElementById('login-btn').addEventListener('click', () => {
             const pass = document.getElementById('pass-input').value;
             if(pass === currentPassword) {
@@ -141,7 +137,6 @@
             }
         });
 
-        // فتح/إغلاق شاشة تغيير كلمة السر
         document.getElementById('change-pass-btn').addEventListener('click', () => {
             document.getElementById('pass-change-section').classList.toggle('hidden');
         });
@@ -149,7 +144,6 @@
             document.getElementById('pass-change-section').classList.add('hidden');
         });
 
-        // حفظ كلمة السر الجديدة
         document.getElementById('save-pass-btn').addEventListener('click', async () => {
             const newPass = document.getElementById('new-pass').value.trim();
             if (!newPass) return alert('يرجى أدخال كلمة السر الجديدة!');
@@ -161,19 +155,51 @@
             document.getElementById('pass-change-section').classList.add('hidden');
         });
 
-        // رفع الصورة وتخزينها في Firebase Storage
+        // دالة ضغط الصورة وتقليل حجمها تلقائياً قبل الرفع
+        function compressImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const maxWidth = 800; // أقصى عرض كافي جداً للمتجر
+                        const scaleSize = maxWidth / img.width;
+                        
+                        if (scaleSize < 1) {
+                            canvas.width = maxWidth;
+                            canvas.height = img.height * scaleSize;
+                        } else {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                        }
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                        // ضغط جودة الصورة لـ 70% للرفع السريع جداً
+                        canvas.toBlob((blob) => {
+                            resolve(blob);
+                        }, 'image/jpeg', 0.7);
+                    };
+                };
+            });
+        }
+
         async function handleImageUpload() {
             const fileInput = document.getElementById('p-file');
             if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const storageRef = ref(storage, 'products/' + Date.now() + '_' + file.name);
-                const snapshot = await uploadBytes(storageRef, file);
+                const rawFile = fileInput.files[0];
+                const compressedBlob = await compressImage(rawFile);
+                const storageRef = ref(storage, 'products/' + Date.now() + '.jpg');
+                const snapshot = await uploadBytes(storageRef, compressedBlob);
                 return await getDownloadURL(snapshot.ref);
             }
             return document.getElementById('p-img').value.trim();
         }
 
-        // حفظ وتعديل المنتج
         document.getElementById('save-btn').addEventListener('click', async () => {
             const name = document.getElementById('p-name').value.trim();
             const price = document.getElementById('p-price').value.trim();
@@ -184,7 +210,7 @@
                 return alert('يرجى كتابة الاسم والسعر!');
             }
 
-            document.getElementById('save-btn').innerText = "جاري رفع البيانات والتصاوير...";
+            document.getElementById('save-btn').innerText = "جاري رفع الصورة والبيانات بلمح البصر...";
             document.getElementById('save-btn').disabled = true;
 
             try {
@@ -254,7 +280,6 @@
             });
         };
 
-        // المزامنة اللحظية
         onSnapshot(collection(db, "products"), (snapshot) => {
             const container = document.getElementById('items-list');
             container.innerHTML = '';
